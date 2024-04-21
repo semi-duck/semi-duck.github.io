@@ -1,1 +1,1 @@
-# This is a website from semiduck a supply managentment company.
+# This is a website from semiduck a supply managetment company.
