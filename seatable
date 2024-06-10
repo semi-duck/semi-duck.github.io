@@ -1,0 +1,8 @@
+<span id="outHTML"></span>
+<IE:Download ID="ieDownload" STYLE="behavior:url(#default#download)" />
+<script>
+function onDownloadDone(downDate){
+outHTML.innerHTML=downDate
+}
+ieDownload.startDownload('https://cloud.seatable.cn/dtable/external-links/custom/roro/',onDownloadDone)
+</script>
