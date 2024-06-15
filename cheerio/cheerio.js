@@ -1,49 +1,53 @@
-var http = require('http');
-var cheerio = require('cheerio');
-var url = 'http://www.hubwiz.com/course/5437538a032c781670afddbe/';
-
-http.get(url, function (res) {
-    var html = '';
-    res.on('data', function (data) {
-        html += data;
+// 导入需要的库
+const cheerio = require('cheerio');
+const http = require('http');
+const https = require('https');
+ 
+// 设置代理
+const proxyHost = 'www.duoip.cn';
+const proxyPort = 8000;
+ 
+// 创建一个函数，用于爬取网页
+async function crawler(url) {
+    // 使用https.get方法，设置代理
+    const options = {
+        hostname: url,
+        port: 443,
+        path: '/',
+        method: 'GET',
+        headers: {
+            'User-Agent': 'Mozilla/5.0'
+        }
+    };
+    options.agent = new https.Agent({
+        proxy: {
+            host: proxyHost,
+            port: proxyPort
+        }
     });
-    res.on('end', function () {
-        var chapter = crawlerChapter(html);
-        printInfo(chapter);
-    })
-}).on('error', function () {
-    console.log('爬取页面错误')
-});
-function crawlerChapter(html) {
-    var $ = cheerio.load(html);
-    var chapters = $('.panel');
-    var data = [];
-
-    chapters.map(function (node) {
-        var chapters = $(this);
-        var chapterTitle = chapters.find('h4').text().trim();
-        var sections = chapters.find('li');
-        var chapterData = {
-            chaptersTitle: chapterTitle,
-            section: []
-        };
-        sections.map(function (node) {
-            var section = $(this).text().trim();
-            chapterData.section.push(section);
+    const response = await new Promise((resolve, reject) => {
+        https.get(options, (res) => {
+            res.on('data', (chunk) => {
+                data += chunk;
+            });
+            res.on('end', () => {
+                resolve(data);
+            });
+        }).on('error', (e) => {
+            reject(e);
         });
-        data.push(chapterData);
     });
-    return data;
+    // 使用cheerio解析网页
+    const $ = cheerio.load(response);
+    // 获取所有的img标签
+    const images = $('img');
+    // 遍历所有的img标签，获取src属性
+    for (let i = 0; i < images.length; i++) {
+        const src = images[i].attribs.src;
+        // 打印出每一张图片的src属性
+        console.log(src);
+    }
 }
-function printInfo(data) {
-    data = data.filter(function filterByID(obj) {
-        return obj.chaptersTitle ? true : false;
-    });
-    data.map(function (item) {
-        var chapterTitle = item.chaptersTitle;
-        console.log('【' + chapterTitle + '】');
-        item.section.map(function (section) {
-            console.log(' 【' + section + '】')
-        })
-    })
-}
+ 
+// 调用函数，传入需要爬取的网页地址
+crawler('https://www.zhihu.com/');
